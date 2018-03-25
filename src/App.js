@@ -1,115 +1,191 @@
-import React, { Component } from 'react';
-import './App.css';
-import { Navbar, Jumbotron, Button } from 'react-bootstrap';
-import Webcam from 'react-webcam';
+import React, { Component } from 'react'
+import Webcam from 'react-webcam'
+import Countdown from 'react-countdown-now'
+import 'whatwg-fetch'
+import './App.css'
+
+import depositImage1 from './images/DepositNow-1.png'
+import depositImage2 from './images/DepositNow-2.png'
+
+const Step = {
+  WELCOME: 'welcome',
+  PREVIEW: 'preview',
+  IDENTIFY: 'identify',
+  FINISH: 'finish',
+}
+
+const detectObject = async (image) => {
+  const response = await fetch('http://167.99.64.250:5000/identify', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({image}),
+  })
+  return response.json()
+}
 
 class App extends Component {
-    render() {
-        return (
-            <div>
-                <MainBody />
-            </div>
-        );
-    }
+  render () {
+    return (
+      <div>
+        <MainBody/>
+      </div>
+    )
+  }
 }
 
-
-class MainBody extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            step: null
-        };
+class MainBody extends Component {
+  constructor (props) {
+    super(props)
+    this.state = {
+      step: null,
+      prediction: null,
+      image: null,
     }
-
-    handleClick() {
-        this.setState({step: "preview"});
-    }
-
-    toIdentify() {
-        this.setState({step: "identify"});
-    }
-
-    toFinish() {
-        this.setState({step: "finish"});
-    }
-
-    render () {
-        if (this.state.step == "preview" ) {
-            return <WebcamCapture onClick={() => this.toIdentify()}/>;
-        }
-        if (this.state.step == "identify" ) {
-            return <Identify onClick={() => this.toFinish()} />;
-        }
-        if (this.state.step == "finish" ) {
-            return <Finish />;
-        }
-        return <Welcome onClick={() => this.handleClick()}/>;
-    }
-}
-
-class Identify extends React.Component {
-    render () {
-        return  (
-            <div>
-            <h1>Identify result:</h1>
-            <h2>One water bottle is received!</h2>
-
-            <Button bsStyle="success" > Report Error </Button>
-            <Button bsStyle="success" > Add More</Button>
-            <Button bsStyle="success" onClick={() => this.props.onClick()}> Done </Button>
-            </div>
-        );
-    }
-}
-
-
-class Welcome extends React.Component {
-    render () {
-        return (
-            <div>
-                <h1>Welcome to Restro!</h1>
-                <h3>Please place the recyclable in the container and click "Scan"</h3>
-                <Button bsStyle="success" onClick={() => this.props.onClick()}> Scan </Button>
-            </div>
-        );
-    }
-}
-
-
-class WebcamCapture extends React.Component {
-  setRef = (webcam) => {
-    this.webcam = webcam;
   }
 
-  capture = () => {
-    const imageSrc = this.webcam.getScreenshot();
-    alert("sending identify");
-    this.props.onClick();
-  };
+  gotoStep = (step) => {
+    this.setState({step})
+  }
 
-  render() {
+  setPrediction = (image, prediction) => {
+    this.setState({image, prediction})
+  }
+
+  render () {
+    let ComponentForRender
+
+    switch (this.state.step) {
+      case Step.PREVIEW:
+        ComponentForRender = Preview
+        break;
+      case Step.IDENTIFY:
+        ComponentForRender = Identify
+        break;
+      case Step.FINISH:
+        ComponentForRender = Finish
+        break
+      default:
+        ComponentForRender = Welcome
+    }
+    return <ComponentForRender
+      prediction={this.state.prediction}
+      image={this.state.image}
+      gotoStep={this.gotoStep}
+      setPrediction={this.setPrediction}
+    />
+  }
+}
+
+class Welcome extends Component {
+  render () {
+    return (
+      <div className="Welcome">
+        <h1 className="Logo">Welcome to Restro!</h1>
+        <button
+          className="DepositNow"
+          onClick={() => this.props.gotoStep(Step.PREVIEW)}
+        >
+          <img src={depositImage1} alt="deposit-now-1"/>
+          <img src={depositImage2} alt="deposit-now-2"/>
+        </button>
+      </div>
+    )
+  }
+}
+
+class Preview extends Component {
+  capture = async () => {
+    const imageBase64 = this.webcam.getScreenshot().split(',')[1]
+    const detectedResult = await detectObject(imageBase64)
+    this.props.setPrediction(imageBase64, detectedResult.prediction)
+    this.props.gotoStep(Step.IDENTIFY)
+  }
+
+  render () {
     return (
       <div>
         <Webcam
           audio={false}
           height={350}
-          ref={this.setRef}
+          ref={webcam => this.webcam = webcam}
           screenshotFormat="image/jpeg"
           width={350}
         />
         <button onClick={this.capture}>scan!</button>
       </div>
-    );
+    )
   }
 }
 
-class Finish extends React.Component {
-    render () {
-        return (
-            <h1>Thank you! Dispensing Tissue for you!</h1>
-        );
+class Identify extends Component {
+
+
+  renderPrediction() {
+
+    const { prediction } = this.props
+
+    if (! prediction) {
+      const message = ">.< Sorry no object is detected."
+      return <div>
+        {message}
+      </div>
+    } else {
+      return <div>
+        Identify Result: {prediction}
+      </div>
     }
+  }
+
+  render () {
+    return (
+      <div>
+        <div>
+          <img src={'data:image/jpeg;base64,' + this.props.image} alt="prediction" />
+        </div>
+
+        <div>
+          {this.renderPrediction()}
+        </div>
+
+        <button>
+          Report Error
+        </button>
+
+        <button onClick={() => this.props.gotoStep(Step.PREVIEW)}>
+          Add More
+        </button>
+
+        <button onClick={() => this.props.gotoStep(Step.FINISH)}>
+          Done
+        </button>
+      </div>
+    )
+  }
 }
 
-export default App;
+class Finish extends Component {
+  countdown = ({ hours, minutes, seconds, completed }) => {
+    if (completed) {
+      setTimeout(() => this.props.gotoStep(Step.WELCOME), 0)
+      return <div />
+    } else {
+      return <span>Take you back to welcome page in {parseInt(seconds, 10)}s.</span>
+    }
+  }
+
+  render () {
+    return (
+      <div>
+        <h1>Thank you! Dispensing Tissue for you!</h1>
+        <Countdown
+          date={Date.now() + 5000}
+          renderer={this.countdown}
+        />
+      </div>
+    )
+  }
+}
+
+export default App

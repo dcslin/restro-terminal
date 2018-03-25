@@ -22,7 +22,72 @@
   font-size: large;
 }
 
+textarea, input, button { outline: none; }
+
 @keyframes App-logo-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  height: 100%;
+  background: #79c90d url("./images/Background.png") no-repeat bottom left;
+  background-size: 1000px 768px;
+}
+
+.Welcome {
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.Logo {
+  display: block;
+  color: transparent;
+  height: 170px;
+  width: 800px;
+  background: url("./images/Logo.png") no-repeat center center;
+  background-size: 800px 170px;
+  margin-top: 140px;
+}
+
+@keyframes DepositNowAnimation {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.DepositNow {
+  width: 800px;
+  height: 153px;
+  background: none;
+  border: none;
+}
+
+.DepositNow img {
+  width: 800px;
+  height: 153px;
+  position: absolute;
+  margin: -77px -400px;
+  animation-name: DepositNowAnimation;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-duration: 1s;
+}
+
+
+.DepositNow img:nth-child(1) {
+  animation-delay: 0.5s;
 }
