@@ -6,6 +6,7 @@ import './App.css'
 
 import depositImage1 from './images/DepositNow-1.png'
 import depositImage2 from './images/DepositNow-2.png'
+import tissue from './images/Tissue.png'
 
 const Step = {
   WELCOME: 'welcome',
@@ -23,6 +24,16 @@ const detectObject = async (image) => {
     body: JSON.stringify({image}),
   })
   return response.json()
+}
+
+const depositToTerminal = async (list) => {
+  await fetch('/terminal/3/deposit', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(list),
+  })
 }
 
 class App extends Component {
@@ -96,24 +107,50 @@ class Welcome extends Component {
 }
 
 class Preview extends Component {
+  constructor (props) {
+    super(props)
+
+    this.state = {
+      processing: false
+    }
+  }
+
   capture = async () => {
-    const imageBase64 = this.webcam.getScreenshot().split(',')[1]
-    const detectedResult = await detectObject(imageBase64)
-    this.props.setPrediction(imageBase64, detectedResult.prediction)
+    this.setState({processing: true})
+
+    try {
+      const imageBase64 = this.webcam.getScreenshot().split(',')[1]
+      const detectedResult = await detectObject(imageBase64)
+      this.props.setPrediction(imageBase64, detectedResult.prediction)
+
+      const list = [
+        {
+          prediction: detectedResult.prediction,
+          confirmed: 1,
+          image: imageBase64
+        }
+      ]
+
+      await depositToTerminal(list)
+    } catch (ex) {
+      console.log(ex)
+    }
+
     this.props.gotoStep(Step.IDENTIFY)
   }
 
   render () {
     return (
-      <div>
+      <div className="Preview">
         <Webcam
+          className="Webcam"
           audio={false}
-          height={350}
           ref={webcam => this.webcam = webcam}
           screenshotFormat="image/jpeg"
-          width={350}
         />
-        <button onClick={this.capture}>scan!</button>
+        <button onClick={this.capture} className="ScanButton">
+          {this.state.processing ?  "Processing..." : "SCAN!"}
+        </button>
       </div>
     )
   }
@@ -140,26 +177,28 @@ class Identify extends Component {
 
   render () {
     return (
-      <div>
-        <div>
+      <div className="Identity">
+        <div className="CapturedImage">
           <img src={'data:image/jpeg;base64,' + this.props.image} alt="prediction" />
         </div>
 
-        <div>
+        <div className="IdentifyResult">
           {this.renderPrediction()}
         </div>
+        <div className="IdentifyButtonGroup">
 
-        <button>
-          Report Error
-        </button>
+          <button style={{color: "red"}}>
+            Report Error
+          </button>
 
-        <button onClick={() => this.props.gotoStep(Step.PREVIEW)}>
-          Add More
-        </button>
+          <button onClick={() => this.props.gotoStep(Step.PREVIEW)}>
+            ＋ Add More
+          </button>
 
-        <button onClick={() => this.props.gotoStep(Step.FINISH)}>
-          Done
-        </button>
+          <button onClick={() => this.props.gotoStep(Step.FINISH)}>
+            ✓ Done
+          </button>
+        </div>
       </div>
     )
   }
@@ -171,14 +210,21 @@ class Finish extends Component {
       setTimeout(() => this.props.gotoStep(Step.WELCOME), 0)
       return <div />
     } else {
-      return <span>Take you back to welcome page in {parseInt(seconds, 10)}s.</span>
+      return <span className="Countdown">Take you back to welcome page in {parseInt(seconds, 10)}s.</span>
     }
   }
 
   render () {
     return (
-      <div>
-        <h1>Thank you! Dispensing Tissue for you!</h1>
+      <div className="Finish">
+        <h1>
+          Thank you!
+          <br />
+          Dispensing Tissue for you!
+        </h1>
+        <div className="TissueBox">
+          <img src={tissue} alt="tissue" />
+        </div>
         <Countdown
           date={Date.now() + 5000}
           renderer={this.countdown}

@@ -91,3 +91,134 @@ body {
 .DepositNow img:nth-child(1) {
   animation-delay: 0.5s;
 }
+
+.Preview {
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.Webcam {
+  margin-top: 60px;
+  width: 100vh;
+  height: calc(100vh - 300px);
+}
+
+
+@keyframes ScanButtonAnimation {
+  0% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.7;
+  }
+}
+
+
+.ScanButton {
+  color: #017f19;
+  background: none;
+  border: none;
+  margin-top: 60px;
+  font-size: 60px;
+  background: #FFF;
+  line-height: 60px;
+  padding: 20px 50px 15px;
+  border-radius: 30px;
+  animation-name: ScanButtonAnimation;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-duration: 0.5s;
+}
+
+.Identity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.CapturedImage {
+  background: #FFF;
+  padding: 20px;
+  border-radius: 20px;
+  height: 340px;
+  width: 440px;
+  margin-top: 50px;
+}
+
+.CapturedImage img {
+  width: 400px;
+  height: 300px;
+}
+
+.IdentifyResult {
+  font-size: 40px;
+  color: #FFFFFF;
+  margin: 20px;
+}
+
+.IdentifyButtonGroup {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.IdentifyButtonGroup button {
+  background: #FFF;
+  padding: 20px;
+  border-radius: 0;
+  color: #017f19;
+  border: none;
+  font-size: 30px;
+  margin: 10px;
+}
+
+.Finish {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.Finish h1 {
+  color: white;
+  text-align: center;
+  font-size: 50px;
+  margin: 40px 0 0 0;
+}
+
+.TissueBox {
+  height: 500px;
+  width: 500px;
+  overflow: hidden;
+  position: relative
+}
+
+
+@keyframes TissueAnimation {
+  0% {
+    top: -500px;
+  }
+  100% {
+    top: 500px;
+  }
+}
+
+.TissueBox img {
+  width: 500px;
+  position: absolute;
+  animation-name: TissueAnimation;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-duration: 2s;
+}
+
+.Countdown {
+  font-size: 30px;
+  margin: 40px 0 0 0;
+  color: white;
+}
