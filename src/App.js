@@ -12,6 +12,7 @@ const Step = {
   WELCOME: 'welcome',
   PREVIEW: 'preview',
   IDENTIFY: 'identify',
+  REPORT: 'report',
   FINISH: 'finish',
 }
 
@@ -77,6 +78,9 @@ class MainBody extends Component {
       case Step.FINISH:
         ComponentForRender = Finish
         break
+      case Step.REPORT:
+        ComponentForRender = Report
+        break
       default:
         ComponentForRender = Welcome
     }
@@ -122,16 +126,6 @@ class Preview extends Component {
       const imageBase64 = this.webcam.getScreenshot().split(',')[1]
       const detectedResult = await detectObject(imageBase64)
       this.props.setPrediction(imageBase64, detectedResult.prediction)
-
-      const list = [
-        {
-          prediction: detectedResult.prediction,
-          confirmed: 1,
-          image: imageBase64
-        }
-      ]
-
-      await depositToTerminal(list)
     } catch (ex) {
       console.log(ex)
     }
@@ -175,6 +169,21 @@ class Identify extends Component {
     }
   }
 
+  submit = async (next, confirmed) => {
+
+    const list = [
+      {
+        prediction: this.props.prediction,
+        confirmed: confirmed,
+        image: this.props.image
+      }
+    ]
+
+    await depositToTerminal(list)
+
+    this.props.gotoStep(next)
+  }
+
   render () {
     return (
       <div className="Identity">
@@ -187,15 +196,15 @@ class Identify extends Component {
         </div>
         <div className="IdentifyButtonGroup">
 
-          <button style={{color: "red"}}>
+          <button style={{color: "red"}} onClick={async () => await this.submit(Step.REPORT, 0)}>
             Report Error
           </button>
 
-          <button onClick={() => this.props.gotoStep(Step.PREVIEW)}>
+          <button onClick={async () => await this.submit(Step.PREVIEW, 1)}>
             ＋ Add More
           </button>
 
-          <button onClick={() => this.props.gotoStep(Step.FINISH)}>
+          <button onClick={async () => await this.submit(Step.FINISH, 1)}>
             ✓ Done
           </button>
         </div>
@@ -225,6 +234,31 @@ class Finish extends Component {
         <div className="TissueBox">
           <img src={tissue} alt="tissue" />
         </div>
+        <Countdown
+          date={Date.now() + 10000}
+          renderer={this.countdown}
+        />
+      </div>
+    )
+  }
+}
+
+class Report extends Component {
+  countdown = ({ hours, minutes, seconds, completed }) => {
+    if (completed) {
+      setTimeout(() => this.props.gotoStep(Step.PREVIEW), 0)
+      return <div />
+    } else {
+      return <span className="Countdown">Take you back to scanning page in {parseInt(seconds, 10)}s.</span>
+    }
+  }
+
+  render () {
+    return (
+      <div className="Finish">
+        <h1>
+          Thanks for reporting!
+        </h1>
         <Countdown
           date={Date.now() + 5000}
           renderer={this.countdown}
